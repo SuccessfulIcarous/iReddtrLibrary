@@ -19,7 +19,7 @@ public struct iReddtr {
         self.baseUrl = url
     }
     
-    func performGet<T>(url: String, queryParams: [String: Any], completion: @escaping HttpCallback<T>) {
+    func performGet<T>(url: String, queryParams: [String: Any], resultQueue: DispatchQueue, completion: @escaping HttpCallback<T>) {
         guard var urlComponents = URLComponents(string: "\(baseUrl)\(ApiPath.searchSubreddits.rawValue)") else {
             completion(HttpResult.Error(APIError.invalidUrl))
             return
@@ -32,27 +32,35 @@ public struct iReddtr {
         let request = createGetRequest(url: url)
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                completion(HttpResult.Error(error))
+                resultQueue.async {
+                    completion(HttpResult.Error(error))
+                }
                 return
             }
             
             guard let httpResponse = (response as? HTTPURLResponse), (200...299).contains(httpResponse.statusCode) else {
-                completion(HttpResult.Error(APIError.nonOkHttpResponse))
+                resultQueue.async {
+                    completion(HttpResult.Error(APIError.nonOkHttpResponse))
+                }
                 return
             }
             
             guard let json = try? JSONDecoder().decode(T.self, from: data!) else {
-                completion(HttpResult.Error(APIError.cannotDeserialiseJson))
+                resultQueue.async {
+                    completion(HttpResult.Error(APIError.cannotDeserialiseJson))
+                }
                 return
             }
             
-            completion(HttpResult.Success(json))
+            resultQueue.async {
+                completion(HttpResult.Success(json))
+            }
             return
         }
         task.resume()
     }
     
-    public func searchSubreddits(query: String, limit: Int = 100, nsfw: Bool = false, onDone: @escaping HttpCallback<SubredditListing>) throws {
+    public func searchSubreddits(query: String, limit: Int = 100, nsfw: Bool = false, resultQueue: DispatchQueue = .main, onDone: @escaping HttpCallback<SubredditListing>) throws {
         let queryParams: [String: Any] = [
             "raw_json": 1,
             "q": query,
@@ -60,7 +68,7 @@ public struct iReddtr {
             "limit": limit
         ]
         let url = self.getUrl(path: ApiPath.searchSubreddits)
-        performGet(url: url, queryParams: queryParams, completion: onDone)
+        performGet(url: url, queryParams: queryParams, resultQueue: resultQueue, completion: onDone)
     }
     
     func getUrl(path: ApiPath) -> String {
