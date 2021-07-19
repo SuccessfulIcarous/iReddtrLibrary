@@ -30,11 +30,33 @@ public struct SubredditData: Codable, Identifiable {
     public let displayName: String?
     public let displayNamePrefixed: String?
     public let iconImg: String?
+    public let communityIcon: String?
     
     enum CodingKeys: String, CodingKey {
         case name, title, id
         case displayName = "display_name"
         case displayNamePrefixed = "display_name_prefixed"
         case iconImg = "icon_img"
+        case communityIcon = "community_icon"
+    }
+    
+    public func getSubredditName() -> String {
+        return self.displayNamePrefixed ?? ""
+    }
+    
+    public func getSubredditShortDesc() -> String {
+        return self.title ?? ""
+    }
+    
+    public func getSubredditIcon() -> String {
+        var iconUrl = ""
+        if let communityIcon = self.communityIcon, !communityIcon.isEmpty {
+            iconUrl = communityIcon
+        } else if let defaultIcon = self.iconImg, !defaultIcon.isEmpty {
+            iconUrl = defaultIcon
+        } else {
+            iconUrl = ""
+        }
+        return getMediaUrl(url: iconUrl)
     }
 }

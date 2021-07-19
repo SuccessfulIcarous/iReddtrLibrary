@@ -6,14 +6,14 @@
             // This is an example of a functional test case.
             // Use XCTAssert and related functions to verify your tests produce the correct
             // results.
-            let library = iReddtr.getProxiedAPI()
+            let library = iReddtr.initAPI()
             XCTAssertEqual(library.baseUrl, "https://asia-southeast2-macredditbackend.cloudfunctions.net/reddit/v1")
             iReddtr.resetInstance()
         }
         
-        func testNonProxyLibraryShouldHaveRedditUrl() {
-            let library = iReddtr.getAPI()
-            XCTAssertEqual(library.baseUrl, "https://www.reddit.com")
+        func testGetProxiedUrlCorrectly() {
+            let library = iReddtr.initAPI()
+            XCTAssertEqual(library.getAPIUrl(path: ApiPath.searchSubreddits), "https://asia-southeast2-macredditbackend.cloudfunctions.net/reddit/v1/api/subreddits/search.json")
             iReddtr.resetInstance()
         }
         
@@ -38,7 +38,7 @@
                 "https://asia-southeast2-macredditbackend.cloudfunctions.net/reddit/v1/fthumbs/cs2TTatQm0c-pPOk.png",
                 "https://asia-southeast2-macredditbackend.cloudfunctions.net/reddit/v1/gthumbs/cs2TTatQm0c-pPOk.png"
             ]
-            let library = iReddtr.getProxiedAPI()
+            let library = iReddtr.initAPI()
             for (index, _) in urlStrings.enumerated() {
                 XCTAssertEqual(library.getMediaUrl(url: urlStrings[index]), expectedUrlStrings[index])
             }

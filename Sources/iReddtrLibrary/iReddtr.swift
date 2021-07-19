@@ -1,17 +1,7 @@
 import Foundation
 
-extension URLComponents {
-    mutating func setQueryItems(with: [String: Any]) {
-        var queryItems: [URLQueryItem] = []
-        for param in with {
-            queryItems.append(URLQueryItem(name: param.key, value: "\(param.value)"))
-        }
-        self.queryItems = queryItems
-    }
-}
-
+let baseUrl = "https://asia-southeast2-macredditbackend.cloudfunctions.net/reddit/v1"
 public typealias HttpCallback<T : Codable> = (HttpResult<T>) -> Void
-
 public struct iReddtr {
     private static var _instance: iReddtr? = nil
     
@@ -19,36 +9,26 @@ public struct iReddtr {
         return _instance!
     }
     
-    public static func resetInstance() {
+    static func resetInstance() {
         _instance = nil
     }
     
-    @discardableResult public static func getProxiedAPI() -> iReddtr {
+    @discardableResult public static func initAPI() -> iReddtr {
         if let instance = _instance {
             return instance
         }
-        _instance = iReddtr(url: "https://asia-southeast2-macredditbackend.cloudfunctions.net/reddit/v1", isProxy: true)
+        _instance = iReddtr(url: "https://asia-southeast2-macredditbackend.cloudfunctions.net/reddit/v1")
         return _instance!
     }
     
-    @discardableResult public static func getAPI() -> iReddtr {
-        if let instance = _instance {
-            return instance
-        }
-        _instance = iReddtr(url: "https://www.reddit.com")
-        return _instance!
-    }
-    
-    let isProxied: Bool
     let baseUrl: String
     
-    public init(url: String, isProxy: Bool = false) {
+    init(url: String) {
         self.baseUrl = url
-        self.isProxied = isProxy
     }
     
-    func performGet<T>(url: String, queryParams: [String: Any], resultQueue: DispatchQueue, completion: @escaping HttpCallback<T>) {
-        guard var urlComponents = URLComponents(string: "\(baseUrl)\(ApiPath.searchSubreddits.rawValue)") else {
+    func performGet<T>(_url: String, queryParams: [String: Any], resultQueue: DispatchQueue, completion: @escaping HttpCallback<T>) {
+        guard var urlComponents = URLComponents(string: _url) else {
             completion(HttpResult.Error(APIError.invalidUrl))
             return
         }
@@ -58,6 +38,7 @@ public struct iReddtr {
             return
         }
         let request = createGetRequest(url: url)
+        print("Calling \(url.absoluteString)")
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 resultQueue.async {
@@ -95,8 +76,8 @@ public struct iReddtr {
             "include_over_18": nsfw ? 1 : 0,
             "limit": limit
         ]
-        let url = self.getUrl(path: ApiPath.searchSubreddits)
-        performGet(url: url, queryParams: queryParams, resultQueue: resultQueue, completion: onDone)
+        let url = self.getAPIUrl(path: ApiPath.searchSubreddits)
+        performGet(_url: url, queryParams: queryParams, resultQueue: resultQueue, completion: onDone)
     }
     
     public func getMediaUrl(url: String) -> String {
@@ -121,9 +102,8 @@ public struct iReddtr {
         return unescapedUrlString
     }
     
-    func getUrl(path: ApiPath) -> String {
-        let prefix = isProxied ? "/api" : ""
-        return "\(baseUrl)\(prefix)\(path.rawValue)"
+    func getAPIUrl(path: ApiPath) -> String {
+        return "\(baseUrl)/api\(path.rawValue)"
     }
     
     func createGetRequest(url: URL) -> URLRequest {
