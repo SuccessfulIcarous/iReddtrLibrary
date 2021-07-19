@@ -23,7 +23,7 @@ public struct iReddtr {
         _instance = nil
     }
     
-    public static func getProxiedAPI() -> iReddtr {
+    @discardableResult public static func getProxiedAPI() -> iReddtr {
         if let instance = _instance {
             return instance
         }
@@ -31,7 +31,7 @@ public struct iReddtr {
         return _instance!
     }
     
-    public static func getAPI() -> iReddtr {
+    @discardableResult public static func getAPI() -> iReddtr {
         if let instance = _instance {
             return instance
         }
