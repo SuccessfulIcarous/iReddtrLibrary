@@ -13,12 +13,30 @@ extension URLComponents {
 public typealias HttpCallback<T : Codable> = (HttpResult<T>) -> Void
 
 public struct iReddtr {
+    private static var _instance: iReddtr? = nil
+    
+    public static func getInstance() -> iReddtr {
+        return _instance!
+    }
+    
+    public static func resetInstance() {
+        _instance = nil
+    }
+    
     public static func getProxiedAPI() -> iReddtr {
-        return iReddtr(url: "https://asia-southeast2-macredditbackend.cloudfunctions.net/reddit/v1", isProxy: true)
+        if let instance = _instance {
+            return instance
+        }
+        _instance = iReddtr(url: "https://asia-southeast2-macredditbackend.cloudfunctions.net/reddit/v1", isProxy: true)
+        return _instance!
     }
     
     public static func getAPI() -> iReddtr {
-        return iReddtr(url: "https://www.reddit.com")
+        if let instance = _instance {
+            return instance
+        }
+        _instance = iReddtr(url: "https://www.reddit.com")
+        return _instance!
     }
     
     let isProxied: Bool

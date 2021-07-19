@@ -2,20 +2,22 @@
     @testable import iReddtrLibrary
 
     final class iReddtrLibraryTests: XCTestCase {
-        func proxyLibraryShouldHaveProxyUrl() {
+        func testProxyLibraryShouldHaveProxyUrl() {
             // This is an example of a functional test case.
             // Use XCTAssert and related functions to verify your tests produce the correct
             // results.
             let library = iReddtr.getProxiedAPI()
             XCTAssertEqual(library.baseUrl, "https://asia-southeast2-macredditbackend.cloudfunctions.net/reddit/v1")
+            iReddtr.resetInstance()
         }
         
-        func nonProxyLibraryShouldHaveRedditUrl() {
+        func testNonProxyLibraryShouldHaveRedditUrl() {
             let library = iReddtr.getAPI()
             XCTAssertEqual(library.baseUrl, "https://www.reddit.com")
+            iReddtr.resetInstance()
         }
         
-        func mapMediaUrlCorrectly() {
+        func testMapMediaUrlCorrectly() {
             let urlStrings = [
                 "https://styles.redditmedia.com/t5_2s113/styles/communityIcon_sin7zgewtag01.png?width=256&amp;s=a40cbf01bb96c1c765fd6da751ab9a5b7b02d65e",
                 "https://a.thumbs.redditmedia.com/pwaSmUVd1vsucuDlyD5mzWGO65vpWt96Tp1CIwBbbX4.png",
@@ -36,8 +38,10 @@
                 "https://asia-southeast2-macredditbackend.cloudfunctions.net/reddit/v1/fthumbs/cs2TTatQm0c-pPOk.png",
                 "https://asia-southeast2-macredditbackend.cloudfunctions.net/reddit/v1/gthumbs/cs2TTatQm0c-pPOk.png"
             ]
+            let library = iReddtr.getProxiedAPI()
             for (index, _) in urlStrings.enumerated() {
-                XCTAssertEqual(urlStrings[index], expectedUrlStrings[index])
+                XCTAssertEqual(library.getMediaUrl(url: urlStrings[index]), expectedUrlStrings[index])
             }
+            iReddtr.resetInstance()
         }
     }
